@@ -41,3 +41,13 @@ func inittables(db *sql.DB) error {
 	}
 	return nil
 }
+
+func adduser(db *sql.DB, username, passwordHash string) error {
+	_, err := db.Exec("INSERT INTO userdata (username, password_hash) VALUES ($1, $2)", username, passwordHash)
+	if err != nil {
+		fmt.Println("DB: Failed to create new user:", err)
+		return err
+	}
+	fmt.Println("DB: Created new user!")
+	return nil
+}

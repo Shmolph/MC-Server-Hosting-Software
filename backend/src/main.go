@@ -3,6 +3,7 @@ package main
 import(
 	"fmt"
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -19,5 +20,13 @@ func main() {
 	} else {
 		fmt.Println("MAIN: If Tables Missing, they are created")
 	}
+
+
+
+	http.HandleFunc("/register", registerHandler(db))
+	log.Fatal(http.ListenAndServe(":3030", nil))
+
+
+
 	defer db.Close()
 }
