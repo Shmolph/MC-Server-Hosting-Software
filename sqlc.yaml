@@ -1,0 +1,4 @@
+gen:
+  go:
+    package: "db"
+    out: "./internal/db"   
