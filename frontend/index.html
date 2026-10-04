@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Shmolph.cloud makes Minecraft server hosting simple, affordable, and easy to get started with.">
+  <title>Shmolph.cloud | Minecraft hosting without the hassle</title>
+  <style>
+    :root {
+      --ink: #17251f;
+      --muted: #617168;
+      --paper: #f5f7ef;
+      --panel: #ffffff;
+      --line: #dce5da;
+      --leaf: #356b4c;
+      --leaf-dark: #234d38;
+      --mint: #dcefe1;
+      --sun: #f5c76d;
+      --sun-soft: #fff2cf;
+      --shadow: 0 20px 50px rgba(35, 77, 56, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    @keyframes rise-in {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.6;
+    }
+
+    .site-shell {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .site-shell::before,
+    .site-shell::after {
+      position: absolute;
+      z-index: -1;
+      content: "";
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .site-shell::before {
+      top: -170px;
+      right: -130px;
+      width: 440px;
+      height: 440px;
+      background: var(--mint);
+    }
+
+    .site-shell::after {
+      top: 560px;
+      left: -210px;
+      width: 430px;
+      height: 430px;
+      border: 1px solid rgba(53, 107, 76, 0.13);
+    }
+
+    .container {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 26px 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+      color: var(--ink);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      color: var(--paper);
+      background: var(--leaf);
+      border-radius: 9px;
+      box-shadow: 4px 4px 0 var(--sun);
+      font-family: Arial, sans-serif;
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: flex;
+      gap: 26px;
+      align-items: center;
+      margin-left: auto;
+      font-family: Arial, sans-serif;
+      font-size: 0.83rem;
+      font-weight: 700;
+    }
+
+    .nav a { color: var(--muted); text-decoration: none; }
+    .nav a:hover { color: var(--leaf-dark); }
+    .nav .button-primary { margin-left: 10px; color: #fff; }
+    .nav .button-primary:hover { color: #fff; }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 21px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      font-family: Arial, sans-serif;
+      font-size: 0.84rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .button:hover { transform: translateY(-2px); }
+    .button-primary { color: #fff; background: var(--leaf); box-shadow: 0 8px 18px rgba(53, 107, 76, 0.2); }
+    .button-primary:hover { background: var(--leaf-dark); }
+    .button-quiet { color: var(--leaf-dark); border-color: var(--line); background: rgba(255, 255, 255, 0.54); }
+    .button:focus-visible, .nav a:focus-visible, .brand:focus-visible { outline: 3px solid var(--sun); outline-offset: 4px; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 680px);
+      align-items: center;
+      min-height: 530px;
+      padding: 58px 0 82px;
+      animation: rise-in 700ms ease both;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 18px;
+      color: var(--leaf);
+      font-family: Arial, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 26px;
+      height: 2px;
+      content: "";
+      background: var(--sun);
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 650px;
+      margin-bottom: 24px;
+      font-size: clamp(3.4rem, 7vw, 6.3rem);
+      font-weight: 700;
+      letter-spacing: -0.045em;
+      line-height: 0.94;
+    }
+
+    .hero-copy {
+      max-width: 525px;
+      color: var(--muted);
+      font-size: 1.14rem;
+    }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+
+    .hero-note {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      margin-top: 23px;
+      color: var(--muted);
+      font-family: Arial, sans-serif;
+      font-size: 0.76rem;
+    }
+
+    .hero-note span { color: var(--leaf); font-size: 1rem; }
+
+    .section { padding: 82px 0; }
+    .section-heading { max-width: 570px; margin-bottom: 42px; }
+    .section-heading h2 { margin-bottom: 14px; font-size: clamp(2.3rem, 4vw, 3.8rem); letter-spacing: -0.04em; line-height: 1; }
+    .section-heading p { color: var(--muted); font-size: 1.05rem; }
+
+    .benefits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .benefit { padding: 28px; border-top: 3px solid var(--leaf); background: rgba(255, 255, 255, 0.66); animation: rise-in 700ms ease both; transition: transform 180ms ease, box-shadow 180ms ease; }
+    .benefit:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(35, 77, 56, 0.08); }
+    .benefit:nth-child(2) { animation-delay: 120ms; }
+    .benefit:nth-child(3) { animation-delay: 240ms; }
+    .benefit-number { color: var(--sun); font-family: Arial, sans-serif; font-size: 0.75rem; font-weight: 800; }
+    .benefit h3 { margin: 23px 0 9px; font-size: 1.45rem; }
+    .benefit p { margin-bottom: 0; color: var(--muted); font-size: 0.96rem; }
+
+    .callout {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 30px;
+      align-items: center;
+      padding: 45px 50px;
+      color: var(--paper);
+      background: var(--leaf-dark);
+      border-radius: 14px;
+    }
+
+    .callout h2 { max-width: 600px; margin-bottom: 8px; font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1; }
+    .callout p { max-width: 520px; margin-bottom: 0; color: #c8dccb; }
+    .callout .button { color: var(--ink); background: var(--sun); }
+
+    footer { padding: 25px 0 45px; color: var(--muted); font-family: Arial, sans-serif; font-size: 0.76rem; }
+    footer .container { display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid var(--line); padding-top: 22px; }
+    .transparency-note { max-width: 900px; margin: 22px auto 0; padding: 15px 18px; border: 1px solid #e3c779; border-radius: 7px; color: var(--ink); background: var(--sun-soft); font-family: Arial, sans-serif; font-size: 0.78rem; line-height: 1.55; text-align: left; }
+
+    @media (max-width: 760px) {
+      .container { width: min(100% - 28px, 570px); }
+      .nav a:not(.button) { display: none; }
+      .nav .button-primary { margin-left: 0; }
+      .hero { min-height: auto; padding: 55px 0 75px; }
+      h1 { font-size: clamp(3.3rem, 17vw, 5.4rem); }
+      .section { padding: 72px 0; }
+      .benefits { grid-template-columns: 1fr; }
+      .callout { grid-template-columns: 1fr; padding: 32px 27px; }
+      footer .container { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar container">
+      <a class="brand" href="index.html" aria-label="Shmolph.cloud home">
+        <span class="brand-mark">S</span>
+        <span>shmolph.cloud</span>
+      </a>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#why">Why Shmolph.cloud</a>
+        <a href="#start">What we are building</a>
+        <a href="login.html">Log in</a>
+        <a class="button button-primary" href="signup.html">Sign up</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero container" aria-labelledby="hero-title">
+        <div>
+          <p class="eyebrow">Minecraft hosting, made human</p>
+          <h1 id="hero-title">Your world.<br>Your way.</h1>
+          <p class="hero-copy">A straightforward, affordable place for your Minecraft world. Shmolph.cloud is being built to take the friction out of hosting.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="signup.html">Join the early list</a>
+            <a class="button button-quiet" href="#why">See why it works</a>
+          </div>
+          <p class="hero-note"><span>+</span> Early access details will be shared as the service takes shape.</p>
+        </div>
+
+      </section>
+
+      <section class="section container" id="why" aria-labelledby="why-title">
+        <div class="section-heading">
+          <p class="eyebrow">The idea</p>
+          <h2 id="why-title">Hosting should feel like part of the game.</h2>
+          <p>We are designing Shmolph.cloud around the parts that matter: a clear start, a sensible price, and room for your community to grow.</p>
+        </div>
+        <div class="benefits">
+          <article class="benefit">
+            <span class="benefit-number">01</span>
+            <h3>Clear setup</h3>
+            <p>A calmer first step, with fewer confusing choices between you and your world.</p>
+          </article>
+          <article class="benefit">
+            <span class="benefit-number">02</span>
+            <h3>Fair pricing</h3>
+            <p>A low-cost approach for small groups and communities that do not need enterprise hosting.</p>
+          </article>
+          <article class="benefit">
+            <span class="benefit-number">03</span>
+            <h3>Room to grow</h3>
+            <p>Start with a simple world and shape the experience around the people you play with.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section container" id="start" aria-labelledby="start-title">
+        <div class="callout">
+          <div>
+            <h2 id="start-title">Want to hear when it is ready?</h2>
+            <p>Sign up for early updates while Shmolph.cloud is being built. No server is live yet, and we will be clear when that changes.</p>
+          </div>
+          <a class="button" href="signup.html">Sign up</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <span>© 2026 Shmolph.cloud</span>
+        <span>Affordable hosting for the worlds you make.</span>
+      </div>
+      <p class="transparency-note"><strong>Honest warning:</strong> AI helped write this frontend. The backend and security decisions were written and reviewed by humans, but this project has not had an independent security audit. Do not use real passwords, personal information, or production servers yet.</p>
+    </footer>
+  </div>
+</body>
+</html>

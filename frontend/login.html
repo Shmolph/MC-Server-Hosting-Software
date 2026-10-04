@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Log in to Shmolph.cloud.">
+  <title>Log in | Shmolph.cloud</title>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>
+    :root {
+      --ink: #17251f;
+      --muted: #617168;
+      --paper: #f5f7ef;
+      --panel: #ffffff;
+      --line: #dce5da;
+      --leaf: #356b4c;
+      --leaf-dark: #234d38;
+      --mint: #dcefe1;
+      --sun: #f5c76d;
+      --sun-soft: #fff2cf;
+      --danger: #9a493c;
+      --shadow: 0 20px 50px rgba(35, 77, 56, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    @keyframes rise-in {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.6;
+    }
+
+    .page {
+      position: relative;
+      display: grid;
+      min-height: 100vh;
+      place-items: center;
+      overflow: hidden;
+      padding: 28px 20px;
+    }
+
+    .page::before,
+    .page::after {
+      position: absolute;
+      z-index: -1;
+      content: "";
+      border-radius: 50%;
+    }
+
+    .page::before { top: -170px; right: -110px; width: 420px; height: 420px; background: var(--mint); }
+    .page::after { bottom: -230px; left: -140px; width: 420px; height: 420px; border: 1px solid rgba(53, 107, 76, 0.14); }
+    .login-shell { width: min(100%, 930px); animation: rise-in 700ms ease both; }
+
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 56px; }
+    .brand { display: inline-flex; gap: 10px; align-items: center; color: var(--ink); font-size: 1.15rem; font-weight: 700; text-decoration: none; }
+    .brand-mark { display: grid; width: 34px; height: 34px; place-items: center; color: var(--paper); background: var(--leaf); border-radius: 9px; box-shadow: 4px 4px 0 var(--sun); font-family: Arial, sans-serif; font-size: 0.95rem; font-weight: 800; }
+    .back-link { color: var(--muted); font-family: Arial, sans-serif; font-size: 0.8rem; font-weight: 700; text-decoration: none; }
+    .back-link:hover { color: var(--leaf-dark); }
+
+    .login-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 70px; align-items: center; }
+    .eyebrow { display: inline-flex; gap: 8px; align-items: center; margin: 0 0 18px; color: var(--leaf); font-family: Arial, sans-serif; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+    .eyebrow::before { width: 26px; height: 2px; content: ""; background: var(--sun); }
+    h1 { max-width: 430px; margin: 0 0 18px; font-size: clamp(3rem, 6vw, 5.2rem); letter-spacing: -0.045em; line-height: 0.95; }
+    .intro { max-width: 390px; margin-bottom: 24px; color: var(--muted); font-size: 1.06rem; }
+    .truth-note { max-width: 390px; padding: 15px 17px; border-left: 3px solid var(--sun); color: var(--leaf-dark); background: var(--sun-soft); font-family: Arial, sans-serif; font-size: 0.78rem; }
+
+    .form-panel { padding: 34px; border: 1px solid rgba(53, 107, 76, 0.12); border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); }
+    .form-panel h2 { margin: 0 0 7px; font-size: 1.8rem; line-height: 1.1; }
+    .form-panel > p { margin-bottom: 25px; color: var(--muted); font-family: Arial, sans-serif; font-size: 0.8rem; }
+    .field { display: grid; gap: 7px; margin-bottom: 17px; }
+    label { color: var(--leaf-dark); font-family: Arial, sans-serif; font-size: 0.76rem; font-weight: 800; }
+    input { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: #fbfcf8; font: inherit; }
+    input:focus { outline: 2px solid var(--sun); outline-offset: 2px; border-color: var(--leaf); }
+    .cf-turnstile { margin: 4px 0 18px; }
+    .button { width: 100%; min-height: 49px; border: 0; border-radius: 7px; color: #fff; background: var(--leaf); font-family: Arial, sans-serif; font-size: 0.84rem; font-weight: 700; cursor: pointer; transition: background 180ms ease, transform 180ms ease; }
+    .button:hover:not(:disabled) { background: var(--leaf-dark); transform: translateY(-2px); }
+    .button:disabled { cursor: wait; opacity: 0.62; }
+    .status-message { min-height: 1.5em; margin: 14px 0 0; color: var(--muted); font-family: Arial, sans-serif; font-size: 0.78rem; }
+    .status-message.success { color: var(--leaf); }
+    .status-message.error { color: var(--danger); }
+    .form-note { margin: 17px 0 0; color: var(--muted); font-family: Arial, sans-serif; font-size: 0.72rem; line-height: 1.5; }
+    .form-link { display: inline-block; margin-top: 20px; color: var(--leaf); font-family: Arial, sans-serif; font-size: 0.78rem; font-weight: 700; text-decoration: none; }
+    .form-link:hover { color: var(--leaf-dark); }
+    .transparency-note { margin: 17px 0 0; padding: 14px 15px; border: 1px solid #e3c779; border-radius: 7px; color: var(--ink); background: var(--sun-soft); font-family: Arial, sans-serif; font-size: 0.75rem; line-height: 1.55; }
+    .brand:focus-visible, .back-link:focus-visible, .button:focus-visible, .form-link:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outline-offset: 4px; }
+
+    @media (max-width: 720px) {
+      .page { padding: 22px 14px 36px; }
+      .topbar { margin-bottom: 42px; }
+      .login-grid { grid-template-columns: 1fr; gap: 36px; }
+      .form-panel { padding: 26px 22px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="login-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="Shmolph.cloud home">
+          <span class="brand-mark">S</span>
+          <span>shmolph.cloud</span>
+        </a>
+        <a class="back-link" href="index.html">Back home</a>
+      </header>
+
+      <section class="login-grid" aria-labelledby="login-title">
+        <div>
+          <p class="eyebrow">Welcome back</p>
+          <h1 id="login-title">Back to your world.</h1>
+          <p class="intro">Log in to continue to Shmolph.cloud. Your session is kept in an HttpOnly cookie managed by the server.</p>
+          <p class="truth-note">Login is connected to the local service at <strong>localhost:3030</strong>. Start the backend before signing in.</p>
+        </div>
+
+        <div class="form-panel">
+          <h2>Log in</h2>
+          <p>Use the username and password for your Shmolph.cloud account.</p>
+          <form id="login-form">
+            <div class="field">
+              <label for="username">Username</label>
+              <input id="username" name="username" type="text" autocomplete="username" required placeholder="AlexBuilder">
+            </div>
+            <div class="field">
+              <label for="password">Password</label>
+              <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="72" placeholder="Your password">
+            </div>
+            <div class="cf-turnstile" id="turnstile-widget"></div>
+            <button class="button" type="submit">Log in</button>
+            <p class="status-message" id="status-message" role="status" aria-live="polite"></p>
+            <p class="form-note">Cloudflare Turnstile is included here, and its token is sent to the local backend. Server-side validation is still required.</p>
+            <a class="form-link" href="signup.html">Need an account? Sign up</a>
+            <p class="transparency-note"><strong>Honest warning:</strong> This project is early and has not had an independent security audit. Do not use a real password or sensitive information here.</p>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const turnstileSiteKey = "1x00000000000000000000AA";
+    const loginForm = document.querySelector("#login-form");
+    const statusMessage = document.querySelector("#status-message");
+    const submitButton = loginForm.querySelector("button[type=submit]");
+    let turnstileWidgetId = null;
+
+    window.addEventListener("load", () => {
+      turnstileWidgetId = turnstile.render("#turnstile-widget", { sitekey: turnstileSiteKey });
+    });
+
+    function resetTurnstile() {
+      if (turnstileWidgetId !== null) {
+        turnstile.reset(turnstileWidgetId);
+      }
+    }
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      statusMessage.className = "status-message";
+      statusMessage.textContent = "Logging in...";
+      submitButton.disabled = true;
+
+      const username = document.querySelector("#username").value.trim();
+      const password = document.querySelector("#password").value;
+      const captchaToken = new FormData(loginForm).get("cf-turnstile-response");
+
+      if (!captchaToken) {
+        statusMessage.className = "status-message error";
+        statusMessage.textContent = "Please complete the Cloudflare Turnstile check.";
+        resetTurnstile();
+        submitButton.disabled = false;
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:3030/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ username, password, captchaToken })
+        });
+
+        if (response.status === 200) {
+          window.location.href = "account.html";
+          return;
+        }
+
+        const responseText = await response.text();
+        statusMessage.className = "status-message error";
+        statusMessage.textContent = response.status === 401
+          ? "Invalid username or password."
+          : responseText || `Login failed (HTTP ${response.status}).`;
+      } catch (error) {
+        statusMessage.className = "status-message error";
+        statusMessage.textContent = "Could not reach localhost:3030. Make sure the backend is running.";
+      } finally {
+        resetTurnstile();
+        submitButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

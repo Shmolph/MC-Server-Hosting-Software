@@ -1,9 +1,11 @@
 package main
 
 import(
-	"golang.org/x/crypto/bcrypt"
 	"fmt"
 	"database/sql"
+	"crypto/rand"
+	"crypto/sha256"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func createuser(db *sql.DB, username, password string) error {
@@ -18,4 +20,14 @@ func createuser(db *sql.DB, username, password string) error {
 		return err
 	}
 	return nil
+}
+
+func givemesessiontoken(db *sql.DB, userid int) (string, bool) {
+	sessiontoken := rand.Text()
+	tokenhashed := sha256.Sum256([]byte(sessiontoken))
+	hashtext := fmt.Sprintf("%x", tokenhashed)
+	if !storesession(db, hashtext, userid) {
+		return "", false
+	}
+	return sessiontoken, true
 }

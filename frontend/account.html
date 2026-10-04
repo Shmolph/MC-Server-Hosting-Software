@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Your Shmolph.cloud account.">
+  <title>Your account | Shmolph.cloud</title>
+  <style>
+    :root { --ink: #17251f; --muted: #617168; --paper: #f5f7ef; --panel: #ffffff; --line: #dce5da; --leaf: #356b4c; --leaf-dark: #234d38; --sun: #f5c76d; --sun-soft: #fff2cf; --mint: #dcefe1; --shadow: 0 18px 44px rgba(35, 77, 56, 0.1); }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; color: var(--ink); background: var(--paper); font-family: Georgia, "Times New Roman", serif; }
+    .dashboard { position: relative; min-height: 100vh; overflow: hidden; }
+    .dashboard::before { position: absolute; z-index: -1; top: -220px; right: -160px; width: 510px; height: 510px; content: ""; border-radius: 50%; background: var(--mint); }
+    .container { width: min(100% - 40px, 1120px); margin: 0 auto; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 26px 0; border-bottom: 1px solid rgba(220, 229, 218, 0.85); }
+    .brand { display: inline-flex; gap: 10px; align-items: center; color: var(--ink); font-size: 1.15rem; font-weight: 700; text-decoration: none; }
+    .brand-mark { display: grid; width: 34px; height: 34px; place-items: center; color: var(--paper); background: var(--leaf); border-radius: 9px; box-shadow: 4px 4px 0 var(--sun); font-family: Arial, sans-serif; font-size: 0.95rem; font-weight: 800; }
+    .account-label { color: var(--muted); font-family: Arial, sans-serif; font-size: 0.76rem; font-weight: 700; }
+    .welcome { padding: 74px 0 58px; animation: rise-in 650ms ease both; }
+    .eyebrow { margin: 0 0 16px; color: var(--leaf); font-family: Arial, sans-serif; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+    h1 { max-width: 680px; margin: 0 0 16px; font-size: clamp(3rem, 7vw, 5.8rem); letter-spacing: -0.045em; line-height: 0.94; }
+    .welcome-copy { max-width: 570px; margin: 0; color: var(--muted); font-size: 1.08rem; }
+    .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(270px, 0.8fr); gap: 20px; padding-bottom: 72px; }
+    .panel { padding: 28px; border: 1px solid rgba(53, 107, 76, 0.12); border-radius: 12px; background: rgba(255, 255, 255, 0.82); box-shadow: var(--shadow); }
+    .panel-wide { min-height: 360px; }
+    .panel-heading { display: flex; align-items: start; justify-content: space-between; gap: 18px; margin-bottom: 32px; }
+    .panel-heading h2 { margin: 0 0 6px; font-size: 1.8rem; line-height: 1; }
+    .panel-heading p { margin: 0; color: var(--muted); font-family: Arial, sans-serif; font-size: 0.76rem; }
+    .quiet-label { color: var(--muted); font-family: Arial, sans-serif; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+    .empty-state { display: grid; min-height: 220px; place-items: center; padding: 28px; border: 1px dashed #bfd0c1; border-radius: 9px; background: rgba(220, 239, 225, 0.38); text-align: center; }
+    .empty-state h3 { margin: 0 0 8px; font-size: 1.5rem; }
+    .empty-state p { max-width: 380px; margin: 0; color: var(--muted); font-size: 0.95rem; }
+    .status-badge { padding: 6px 9px; border-radius: 99px; color: var(--leaf-dark); background: var(--mint); font-family: Arial, sans-serif; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .checklist { display: grid; gap: 15px; margin: 0; padding: 0; list-style: none; }
+    .checklist li { display: flex; gap: 12px; align-items: flex-start; color: var(--muted); font-family: Arial, sans-serif; font-size: 0.82rem; }
+    .check-icon { display: grid; width: 22px; height: 22px; flex: 0 0 22px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--leaf); background: var(--mint); font-size: 0.72rem; font-weight: 800; }
+    .honesty { margin: 0 0 38px; padding: 14px 16px; border: 1px solid #e3c779; border-radius: 7px; color: var(--ink); background: var(--sun-soft); font-family: Arial, sans-serif; font-size: 0.75rem; line-height: 1.55; }
+    .footer { padding-bottom: 36px; color: var(--muted); font-family: Arial, sans-serif; font-size: 0.7rem; }
+    .account-error { width: min(100% - 40px, 560px); margin: 18vh auto 0; padding: 24px; border: 1px solid #e3c779; border-radius: 10px; color: var(--ink); background: var(--sun-soft); font-family: Arial, sans-serif; font-size: 0.9rem; line-height: 1.55; }
+    .brand:focus-visible { outline: 3px solid var(--sun); outline-offset: 4px; }
+    @keyframes rise-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 760px) { .container { width: min(100% - 28px, 570px); } .welcome { padding: 55px 0 42px; } .dashboard-grid { grid-template-columns: 1fr; } .panel-wide { min-height: 0; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+  </style>
+</head>
+<body>
+  <div id="account-content" class="dashboard" hidden>
+    <header class="topbar container">
+      <a class="brand" href="index.html" aria-label="Shmolph.cloud home">
+        <span class="brand-mark">S</span>
+        <span>shmolph.cloud</span>
+      </a>
+      <span class="account-label">Account dashboard</span>
+    </header>
+
+    <main class="container">
+      <section class="welcome" aria-labelledby="dashboard-title">
+        <p class="eyebrow">Signed in</p>
+        <h1 id="dashboard-title">Your world is next.</h1>
+        <p class="welcome-copy">This is your starting point for Shmolph.cloud. The session cookie is being managed by the browser and the server.</p>
+      </section>
+
+      <div class="dashboard-grid">
+        <section class="panel panel-wide" aria-labelledby="servers-title">
+          <div class="panel-heading">
+            <div>
+              <p class="quiet-label">Workspace</p>
+              <h2 id="servers-title">Your servers</h2>
+              <p>Manage the worlds you host from one place.</p>
+            </div>
+            <span class="status-badge">No servers yet</span>
+          </div>
+          <div class="empty-state">
+            <div>
+              <h3>Your first world starts here.</h3>
+              <p>Server creation is the next dashboard feature. Nothing is running yet, and this screen will never pretend otherwise.</p>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel" aria-labelledby="setup-title">
+          <div class="panel-heading">
+            <div>
+              <p class="quiet-label">Next steps</p>
+              <h2 id="setup-title">Getting ready</h2>
+            </div>
+          </div>
+          <ul class="checklist">
+            <li><span class="check-icon">1</span><span>Your account is created and ready.</span></li>
+            <li><span class="check-icon">2</span><span>Choose a world name when server creation arrives.</span></li>
+            <li><span class="check-icon">3</span><span>Invite your friends once your server is live.</span></li>
+          </ul>
+        </aside>
+      </div>
+
+      <p class="honesty"><strong>Honest warning:</strong> This project is early and has not had an independent security audit. Do not use sensitive production data yet.</p>
+    </main>
+
+    <footer class="footer container">© 2026 Shmolph.cloud</footer>
+  </div>
+  <p id="account-error" class="account-error" role="alert" hidden>We could not verify your session. Make sure the backend is running and try again.</p>
+  <script>
+    const accountContent = document.querySelector("#account-content");
+    const accountError = document.querySelector("#account-error");
+
+    fetch("http://localhost:3030/account", { credentials: "include" })
+      .then((response) => {
+        if (response.status === 401) {
+          window.location.replace("login.html");
+          return;
+        }
+
+        if (response.status === 200) {
+          accountContent.hidden = false;
+          return;
+        }
+
+        throw new Error(`Session check failed with HTTP ${response.status}.`);
+      })
+      .catch(() => {
+        accountError.hidden = false;
+      });
+  </script>
+</body>
+</html>
