@@ -1,0 +1,1 @@
+clear && npm run dev -- --port 5000 --strictPort

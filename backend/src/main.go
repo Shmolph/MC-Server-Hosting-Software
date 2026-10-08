@@ -20,15 +20,22 @@ func main() {
 	} else {
 		fmt.Println("MAIN: If Tables Missing, they are created")
 	}
-	go func() {
-	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir("/home/shmolph/Documents/Personal/Fun Things =D/MC Server Hosting Software/frontend/")))
-	log.Fatal(http.ListenAndServe(":5000", mux))
-	}()
+	
+	fmt.Println("Pulling Version Manifest,,,")
+	versions, ordered, err := pullmanifest()
+	if err != nil {
+		log.Fatalf("Failed to pull manifest: %v", err)
+	}
+	fmt.Println(len(versions), "versions loaded,", len(ordered), "in list")
 
+	// Networking
 	http.HandleFunc("/register", withcors(registerHandler(db)))
 	http.HandleFunc("/login", withcors(loginhandler(db)))
-	http.HandleFunc("/account", withcors(account(db)))
+	http.HandleFunc("/account", withcors(requirelogin(db, account)))
+	http.HandleFunc("/servers/create", withcors(requirelogin(db, createserver(db, versions))))
+	http.HandleFunc("/servers", withcors(requirelogin(db, listservers(db))))
+	http.HandleFunc("/versions", withcors(listversions(ordered)))
+	http.HandleFunc("/logout", withcors(revokesession(db)))
 	log.Fatal(http.ListenAndServe(":3030", nil))
 
 

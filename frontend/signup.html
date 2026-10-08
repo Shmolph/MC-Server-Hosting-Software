@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Sign up for early updates from Shmolph.cloud.">
   <title>Sign up | Shmolph.cloud</title>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="api.js"></script>
   <style>
     :root {
       --ink: #17251f;
@@ -174,6 +174,7 @@
     .status-message { min-height: 1.5em; margin: 14px 0 0; color: var(--muted); font-family: Arial, sans-serif; font-size: 0.78rem; }
     .status-message.success { color: var(--leaf); }
     .status-message.error { color: #9a493c; }
+    .auth-check { margin: 0; color: var(--muted); font-family: Arial, sans-serif; font-size: 0.8rem; text-align: center; }
 
     @media (max-width: 720px) {
       .page { padding: 22px 14px 36px; }
@@ -198,6 +199,7 @@
         <a class="back-link" href="login.html">Already have an account? Log in</a>
       </header>
 
+      <p id="auth-check" class="auth-check" role="status">Checking your session...</p>
       <section class="signup-grid" aria-labelledby="signup-title">
         <div>
           <p class="eyebrow">Early access</p>
@@ -206,7 +208,7 @@
           <p class="truth-note">Registration is connected to the local service at <strong>localhost:3030</strong>. Start the backend before signing up.</p>
         </div>
 
-        <div class="form-panel">
+        <div id="auth-panel" class="form-panel" hidden>
           <h2>Create your account</h2>
           <p>Your account details are sent directly to the local registration service.</p>
           <form id="signup-form">
@@ -239,6 +241,8 @@
     const signupForm = document.querySelector("#signup-form");
     const statusMessage = document.querySelector("#status-message");
     const submitButton = signupForm.querySelector("button[type=submit]");
+    const authPanel = document.querySelector("#auth-panel");
+    const authCheck = document.querySelector("#auth-check");
     let turnstileWidgetId = null;
     let pendingTurnstileResolve = null;
     let activeTurnstileToken = null;
@@ -266,12 +270,49 @@
     passwordInput.addEventListener("input", updatePasswordRequirements);
     updatePasswordRequirements();
 
-    window.addEventListener("load", () => {
-      turnstileWidgetId = turnstile.render("#turnstile-widget", {
-        sitekey: turnstileSiteKey,
-        callback: handleTurnstileToken
+    function loadTurnstile() {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+        script.async = true;
+        script.defer = true;
+        script.addEventListener("load", resolve, { once: true });
+        script.addEventListener("error", reject, { once: true });
+        document.head.appendChild(script);
       });
-    });
+    }
+
+    async function revealSignupForm(sessionCheckMessage = "") {
+      authPanel.hidden = false;
+      authCheck.textContent = sessionCheckMessage;
+      authCheck.hidden = !sessionCheckMessage;
+
+      try {
+        await loadTurnstile();
+        turnstileWidgetId = turnstile.render("#turnstile-widget", {
+          sitekey: turnstileSiteKey,
+          callback: handleTurnstileToken
+        });
+      } catch (error) {
+        statusMessage.className = "status-message error";
+        statusMessage.textContent = "Could not load the CAPTCHA. Please refresh and try again.";
+      }
+    }
+
+    async function checkExistingSession() {
+      try {
+        const response = await fetch("http://localhost:3030/account", { credentials: "include" });
+
+        if (response.status === 200) {
+          window.location.replace("account.html");
+          return;
+        }
+
+        await revealSignupForm(response.status === 401 ? "" : "We could not verify your session. You can still try to sign up.");
+      } catch (error) {
+        await revealSignupForm("Can't reach the server. You can still try to sign up.");
+      }
+    }
 
     function handleTurnstileToken(token) {
       activeTurnstileToken = token;
@@ -315,12 +356,7 @@
       }
 
       try {
-        const response = await fetch("http://localhost:3030/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ username, password, captchaToken })
-        });
+        const response = await window.dashboardApi.register({ username, password, captchaToken });
 
         if (response.status === 200) {
           const registerResponseText = await response.text();
@@ -328,12 +364,7 @@
           statusMessage.textContent = `${registerResponseText || "Account created successfully."} Signing you in...`;
 
           const loginCaptchaToken = await waitForFreshTurnstileToken();
-          const loginResponse = await fetch("http://localhost:3030/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ username, password, captchaToken: loginCaptchaToken })
-          });
+          const loginResponse = await window.dashboardApi.login({ username, password, captchaToken: loginCaptchaToken });
 
           if (loginResponse.status === 200) {
             window.location.href = "account.html";
@@ -358,6 +389,8 @@
         submitButton.disabled = false;
       }
     });
+
+    checkExistingSession();
   </script>
 </body>
 </html>

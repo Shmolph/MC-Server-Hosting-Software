@@ -31,6 +31,7 @@ func inittables(db *sql.DB) error {
 	tables := []string{
 		"CREATE TABLE IF NOT EXISTS userdata (username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, profile JSONB, id SERIAL PRIMARY KEY)",
 		"CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES userdata(id) ON DELETE CASCADE, expires_at TIMESTAMPTZ NOT NULL)",
+		"CREATE TABLE IF NOT EXISTS servers (id SERIAL PRIMARY KEY, owner INTEGER NOT NULL REFERENCES userdata(id) ON DELETE CASCADE, name TEXT NOT NULL, type TEXT NOT NULL, version TEXT NOT NULL, ram_mb INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'offline', port INTEGER NOT NULL UNIQUE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())",
 	}
 	for _, x := range tables {
 		_, err := db.Exec(x)
@@ -85,4 +86,59 @@ func checksession(db *sql.DB, token_hash string) (bool, int) {
 		return false, 0
 	}
 	return true, userid
+}
+
+func deletesession(db *sql.DB, hash string) bool {
+	_, err := db.Exec("DELETE FROM sessions WHERE token_hash = $1", hash)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func addserver(db *sql.DB, userid int, name string, servertype string, version string, ram int) (bool, int) {
+	var serverid int
+	err := db.QueryRow("INSERT INTO servers (owner, name, type, version, ram_mb, port) VALUES ($1, $2, $3, $4, $5, (SELECT COALESCE(MAX(port), 25564) + 1 FROM servers)) RETURNING id", userid, name, servertype, version, ram).Scan(&serverid)
+	if err != nil {
+		fmt.Println("DB: Failed to register server:", err)
+		return false, 0
+	}
+	fmt.Println("DB: Made server!") //Remove later
+	return true, serverid
+}
+
+// Fetch Server
+
+// The struct
+type serverdiagram struct {
+	Id int `json:"id"`
+	Name string	`json:"name"`
+	Type string	`json:"type"`
+	Version string	`json:"version"`
+	Status string	`json:"status"`
+	RamMB int	`json:"ram_mb"`
+	Port int	`json:"port"`
+}
+
+// Actual Function
+func fetchserver(db *sql.DB, userid int) ([]serverdiagram, error) {
+	rows, err := db.Query("SELECT id, name, type, version, status, ram_mb, port FROM servers WHERE owner = $1", userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	servers := []serverdiagram{}
+	for rows.Next() {
+		var s serverdiagram
+		err := rows.Scan(&s.Id, &s.Name, &s.Type, &s.Version, &s.Status, &s.RamMB, &s.Port)
+		if err != nil {
+			return nil, err
+		}
+		servers = append(servers, s)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	return servers, nil
 }

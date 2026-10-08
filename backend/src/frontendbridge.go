@@ -132,20 +132,51 @@ func loginhandler(db *sql.DB) http.HandlerFunc {
 }
 
 //Account
-func account(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-	c, err := r.Cookie("session")
-	if err != nil {
-		http.Error(w, "no cookie :(", http.StatusUnauthorized)
-		return
-	}
-	ok, userid := checksession(db, (fmt.Sprintf("%x", sha256.Sum256([]byte(c.Value)))))
-	if !ok {
-		http.Error(w, "expired cookie xD", http.StatusUnauthorized)
-		return
-	}
+func account(w http.ResponseWriter, r *http.Request, userid int) {
 	fmt.Fprintln(w, "logged in as user:", userid)
 }
+
+
+//Revoke Session
+	func revokesession(db *sql.DB) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			c, err := r.Cookie("session")
+			if err != nil {
+				http.Error(w, "no cookie :(", http.StatusUnauthorized)
+				return
+			}
+			ok := deletesession(db, (fmt.Sprintf("%x", sha256.Sum256([]byte(c.Value)))))
+			http.SetCookie(w, &http.Cookie{
+				Name:	"session",
+				Value:	"",
+				Path:	"/",
+				HttpOnly:	true,
+				MaxAge:	-1,
+			})
+			if !ok {
+				http.Error(w, "Failed to delete session", http.StatusInternalServerError)
+				return
+			}
+			fmt.Fprintln(w, "deleted session")
+		}
+	}
+
+//Require Login
+func requirelogin(db *sql.DB, next func(w http.ResponseWriter, r *http.Request, userid int)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie("session")
+		if err != nil {
+			http.Error(w, "not logged in >:) (i love my security)", http.StatusUnauthorized)
+			return
+		}
+		ok, userid := checksession(db, (fmt.Sprintf("%x", sha256.Sum256([]byte(c.Value)))))
+		if !ok {
+			http.Error(w, "not logged in >:) (i love my security)", http.StatusUnauthorized)
+			return
+		}
+		next(w, r, userid)
+
+	}
 }
 
 //Captcha
@@ -177,7 +208,7 @@ func withcors(next http.HandlerFunc) http.HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5000")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -185,4 +216,3 @@ func withcors(next http.HandlerFunc) http.HandlerFunc {
 		next(w, r)
 	}
 }
-

@@ -1,11 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="system">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script>document.documentElement.dataset.theme = localStorage.getItem("shmolph-theme") || "system";</script>
+  <link rel="icon" href="/favicon.svg">
   <meta name="description" content="Shmolph.cloud makes Minecraft server hosting simple, affordable, and easy to get started with.">
   <title>Shmolph.cloud | Minecraft hosting without the hassle</title>
-  <style>
+  <template><style>
     :root {
       --ink: #17251f;
       --muted: #617168;
@@ -248,81 +251,10 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
-  </style>
+  </style></template>
 </head>
 <body>
-  <div class="site-shell">
-    <header class="topbar container">
-      <a class="brand" href="index.html" aria-label="Shmolph.cloud home">
-        <span class="brand-mark">S</span>
-        <span>shmolph.cloud</span>
-      </a>
-      <nav class="nav" aria-label="Main navigation">
-        <a href="#why">Why Shmolph.cloud</a>
-        <a href="#start">What we are building</a>
-        <a href="login.html">Log in</a>
-        <a class="button button-primary" href="signup.html">Sign up</a>
-      </nav>
-    </header>
-
-    <main>
-      <section class="hero container" aria-labelledby="hero-title">
-        <div>
-          <p class="eyebrow">Minecraft hosting, made human</p>
-          <h1 id="hero-title">Your world.<br>Your way.</h1>
-          <p class="hero-copy">A straightforward, affordable place for your Minecraft world. Shmolph.cloud is being built to take the friction out of hosting.</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="signup.html">Join the early list</a>
-            <a class="button button-quiet" href="#why">See why it works</a>
-          </div>
-          <p class="hero-note"><span>+</span> Early access details will be shared as the service takes shape.</p>
-        </div>
-
-      </section>
-
-      <section class="section container" id="why" aria-labelledby="why-title">
-        <div class="section-heading">
-          <p class="eyebrow">The idea</p>
-          <h2 id="why-title">Hosting should feel like part of the game.</h2>
-          <p>We are designing Shmolph.cloud around the parts that matter: a clear start, a sensible price, and room for your community to grow.</p>
-        </div>
-        <div class="benefits">
-          <article class="benefit">
-            <span class="benefit-number">01</span>
-            <h3>Clear setup</h3>
-            <p>A calmer first step, with fewer confusing choices between you and your world.</p>
-          </article>
-          <article class="benefit">
-            <span class="benefit-number">02</span>
-            <h3>Fair pricing</h3>
-            <p>A low-cost approach for small groups and communities that do not need enterprise hosting.</p>
-          </article>
-          <article class="benefit">
-            <span class="benefit-number">03</span>
-            <h3>Room to grow</h3>
-            <p>Start with a simple world and shape the experience around the people you play with.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="section container" id="start" aria-labelledby="start-title">
-        <div class="callout">
-          <div>
-            <h2 id="start-title">Want to hear when it is ready?</h2>
-            <p>Sign up for early updates while Shmolph.cloud is being built. No server is live yet, and we will be clear when that changes.</p>
-          </div>
-          <a class="button" href="signup.html">Sign up</a>
-        </div>
-      </section>
-    </main>
-
-    <footer>
-      <div class="container">
-        <span>© 2026 Shmolph.cloud</span>
-        <span>Affordable hosting for the worlds you make.</span>
-      </div>
-      <p class="transparency-note"><strong>Honest warning:</strong> AI helped write this frontend. The backend and security decisions were written and reviewed by humans, but this project has not had an independent security audit. Do not use real passwords, personal information, or production servers yet.</p>
-    </footer>
-  </div>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

@@ -3,8 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <meta name="description" content="Your Shmolph.cloud account.">
   <title>Your account | Shmolph.cloud</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem("shmolph-theme") || "system";</script>
+  <script src="api.js"></script>
+  <script src="dashboard.js" defer></script>
   <style>
     :root { --ink: #17251f; --muted: #617168; --paper: #f5f7ef; --panel: #ffffff; --line: #dce5da; --leaf: #356b4c; --leaf-dark: #234d38; --sun: #f5c76d; --sun-soft: #fff2cf; --mint: #dcefe1; --shadow: 0 18px 44px rgba(35, 77, 56, 0.1); }
     * { box-sizing: border-box; }
@@ -13,9 +17,13 @@
     .dashboard::before { position: absolute; z-index: -1; top: -220px; right: -160px; width: 510px; height: 510px; content: ""; border-radius: 50%; background: var(--mint); }
     .container { width: min(100% - 40px, 1120px); margin: 0 auto; }
     .topbar { display: flex; align-items: center; justify-content: space-between; padding: 26px 0; border-bottom: 1px solid rgba(220, 229, 218, 0.85); }
+    .topbar-actions { display: flex; gap: 14px; align-items: center; }
     .brand { display: inline-flex; gap: 10px; align-items: center; color: var(--ink); font-size: 1.15rem; font-weight: 700; text-decoration: none; }
     .brand-mark { display: grid; width: 34px; height: 34px; place-items: center; color: var(--paper); background: var(--leaf); border-radius: 9px; box-shadow: 4px 4px 0 var(--sun); font-family: Arial, sans-serif; font-size: 0.95rem; font-weight: 800; }
     .account-label { color: var(--muted); font-family: Arial, sans-serif; font-size: 0.76rem; font-weight: 700; }
+    .logout-button { min-height: 36px; padding: 0 13px; border: 1px solid var(--line); border-radius: 6px; color: var(--leaf-dark); background: rgba(255, 255, 255, 0.68); font-family: Arial, sans-serif; font-size: 0.72rem; font-weight: 800; cursor: pointer; transition: background 180ms ease, color 180ms ease; }
+    .logout-button:hover:not(:disabled) { color: #fff; background: var(--leaf); }
+    .logout-button:disabled { cursor: wait; opacity: 0.6; }
     .welcome { padding: 74px 0 58px; animation: rise-in 650ms ease both; }
     .eyebrow { margin: 0 0 16px; color: var(--leaf); font-family: Arial, sans-serif; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
     h1 { max-width: 680px; margin: 0 0 16px; font-size: clamp(3rem, 7vw, 5.8rem); letter-spacing: -0.045em; line-height: 0.94; }
@@ -37,89 +45,35 @@
     .honesty { margin: 0 0 38px; padding: 14px 16px; border: 1px solid #e3c779; border-radius: 7px; color: var(--ink); background: var(--sun-soft); font-family: Arial, sans-serif; font-size: 0.75rem; line-height: 1.55; }
     .footer { padding-bottom: 36px; color: var(--muted); font-family: Arial, sans-serif; font-size: 0.7rem; }
     .account-error { width: min(100% - 40px, 560px); margin: 18vh auto 0; padding: 24px; border: 1px solid #e3c779; border-radius: 10px; color: var(--ink); background: var(--sun-soft); font-family: Arial, sans-serif; font-size: 0.9rem; line-height: 1.55; }
-    .brand:focus-visible { outline: 3px solid var(--sun); outline-offset: 4px; }
+    #logout-message { margin: 18px auto; }
+    .brand:focus-visible, .logout-button:focus-visible { outline: 3px solid var(--sun); outline-offset: 4px; }
     @keyframes rise-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     @media (max-width: 760px) { .container { width: min(100% - 28px, 570px); } .welcome { padding: 55px 0 42px; } .dashboard-grid { grid-template-columns: 1fr; } .panel-wide { min-height: 0; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
   </style>
+  <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
-  <div id="account-content" class="dashboard" hidden>
-    <header class="topbar container">
-      <a class="brand" href="index.html" aria-label="Shmolph.cloud home">
-        <span class="brand-mark">S</span>
-        <span>shmolph.cloud</span>
-      </a>
-      <span class="account-label">Account dashboard</span>
+  <div id="account-content" class="app-shell" hidden>
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Shmolph.cloud home"><span class="brand-mark">S</span><span>shmolph.cloud</span></a>
+      <div class="topbar-right"><button id="menu-toggle" class="topbar-button menu-toggle" type="button">Menu</button><button id="theme-toggle" class="topbar-button" type="button">Theme: System</button><button class="user-menu" type="button" data-view="profile"><span class="user-avatar">?</span><span>Profile</span></button><button class="topbar-link" type="button" data-view="settings">Settings</button><button id="logout-button" class="logout-button" type="button">Log out</button></div>
     </header>
-
-    <main class="container">
-      <section class="welcome" aria-labelledby="dashboard-title">
-        <p class="eyebrow">Signed in</p>
-        <h1 id="dashboard-title">Your world is next.</h1>
-        <p class="welcome-copy">This is your starting point for Shmolph.cloud. The session cookie is being managed by the browser and the server.</p>
-      </section>
-
-      <div class="dashboard-grid">
-        <section class="panel panel-wide" aria-labelledby="servers-title">
-          <div class="panel-heading">
-            <div>
-              <p class="quiet-label">Workspace</p>
-              <h2 id="servers-title">Your servers</h2>
-              <p>Manage the worlds you host from one place.</p>
-            </div>
-            <span class="status-badge">No servers yet</span>
-          </div>
-          <div class="empty-state">
-            <div>
-              <h3>Your first world starts here.</h3>
-              <p>Server creation is the next dashboard feature. Nothing is running yet, and this screen will never pretend otherwise.</p>
-            </div>
-          </div>
-        </section>
-
-        <aside class="panel" aria-labelledby="setup-title">
-          <div class="panel-heading">
-            <div>
-              <p class="quiet-label">Next steps</p>
-              <h2 id="setup-title">Getting ready</h2>
-            </div>
-          </div>
-          <ul class="checklist">
-            <li><span class="check-icon">1</span><span>Your account is created and ready.</span></li>
-            <li><span class="check-icon">2</span><span>Choose a world name when server creation arrives.</span></li>
-            <li><span class="check-icon">3</span><span>Invite your friends once your server is live.</span></li>
-          </ul>
-        </aside>
-      </div>
-
-      <p class="honesty"><strong>Honest warning:</strong> This project is early and has not had an independent security audit. Do not use sensitive production data yet.</p>
-    </main>
-
-    <footer class="footer container">© 2026 Shmolph.cloud</footer>
+    <div class="app-layout">
+      <aside class="sidebar" aria-label="Dashboard navigation"><p class="sidebar-label">Control panel</p><nav class="sidebar-nav"><button class="sidebar-link active" type="button" data-view="dashboard"><span class="nav-icon">▦</span>Dashboard</button><button class="sidebar-link" type="button" data-view="servers"><span class="nav-icon">□</span>Servers</button><button class="sidebar-link" type="button" disabled><span class="nav-icon">◫</span>Backups <span class="soon-badge">Soon</span></button><button class="sidebar-link" type="button" disabled><span class="nav-icon">$</span>Billing <span class="soon-badge">Soon</span></button><button class="sidebar-link" type="button" data-view="settings"><span class="nav-icon">⚙</span>Settings</button></nav></aside>
+      <main class="workspace">
+        <div id="global-message" class="message" role="alert" aria-live="polite"></div>
+        <section id="dashboard-view" aria-labelledby="dashboard-heading"><div class="page-head"><div><p class="page-kicker">Dashboard</p><h1 id="dashboard-heading">Overview</h1></div><button id="dashboard-create-button" class="primary-button" type="button">+ Create server</button></div><div id="dashboard-stats" class="stat-grid"><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div></div><section class="dashboard-panel"><div class="section-head"><h2>Your servers</h2><button class="text-button" type="button" data-view="servers">View all</button></div><div id="dashboard-server-list" class="server-list"><div class="skeleton-list"><div class="skeleton-row"></div></div></div></section></section>
+        <section id="server-list-view" hidden aria-labelledby="servers-heading"><div class="page-head"><div><p class="page-kicker">Servers</p><h1 id="servers-heading">All servers</h1></div><button id="create-server-button" class="primary-button" type="button">+ Create server</button></div><div class="toolbar"><input id="server-search" class="input" type="search" placeholder="Search servers"><select id="status-filter" class="select"><option>All</option><option>Online</option><option>Offline</option></select></div><div id="server-list" class="server-list"><div class="skeleton-list" aria-label="Loading servers"><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div></div></div></section>
+        <section id="server-detail-view" hidden aria-labelledby="detail-name"><button id="back-to-servers" class="back-button" type="button">← All servers</button><div class="detail-head"><div class="detail-title"><h1 id="detail-name">Server</h1><span id="detail-status" class="status"></span></div><div class="detail-actions"><button class="secondary-button" type="button" data-detail-action="start">Start</button><button class="secondary-button" type="button" data-detail-action="stop">Stop</button><button class="secondary-button" type="button" data-detail-action="restart">Restart</button><button class="danger-button" type="button" data-detail-action="kill">Kill</button></div></div><div id="stats-strip" class="stats-strip"></div><div class="tabs" role="tablist" aria-label="Server views"><button class="tab active" type="button" data-tab="console" role="tab">Console</button><button class="tab" type="button" data-tab="players" role="tab">Players</button><button class="tab" type="button" data-tab="files" role="tab">Files</button><button class="tab" type="button" data-tab="backups" role="tab">Backups</button><button class="tab" type="button" data-tab="settings" role="tab">Settings</button></div><div id="tab-panel" class="tab-panel"></div></section>
+        <section id="profile-view" hidden aria-labelledby="profile-heading"><div class="page-head"><div><p class="page-kicker">Profile</p><h1 id="profile-heading">Account</h1></div></div><div class="settings-card"><div class="profile-row"><span class="profile-avatar">?</span><div><strong>Signed in</strong><span>Username unavailable</span></div></div><div class="profile-section"><h2>Change password <span class="soon-badge">Soon</span></h2><button class="secondary-button" type="button" disabled>Change password</button></div><div class="profile-section"><h2>Active session</h2><button class="secondary-button" type="button" data-profile-logout>Log out</button></div><div class="danger-zone"><strong>Danger zone</strong><span>Delete account</span><button class="danger-button danger-outline" type="button" disabled>Delete account <span class="soon-badge">Soon</span></button></div></div></section>
+        <section id="settings-view" hidden aria-labelledby="settings-heading"><div class="page-head"><div><p class="page-kicker">Settings</p><h1 id="settings-heading">Preferences</h1></div></div><div class="settings-card"><div class="setting-block"><h2>Appearance</h2><div class="theme-options"><button class="theme-card" type="button" data-theme-choice="light">Light</button><button class="theme-card" type="button" data-theme-choice="dark">Dark</button><button class="theme-card" type="button" data-theme-choice="system">System</button></div><label class="toggle-row"><span>Compact spacing</span><input type="checkbox" data-pref="compact"></label></div><div class="setting-block"><h2>Console</h2><div class="setting-line"><span>Font size</span><div class="segmented"><button type="button" data-font-size="small">S</button><button type="button" data-font-size="medium">M</button><button type="button" data-font-size="large">L</button></div></div><label class="toggle-row"><span>Show timestamps</span><input type="checkbox" data-pref="timestamps" checked></label><label class="toggle-row"><span>Auto-scroll</span><input type="checkbox" data-pref="autoscroll" checked></label></div><div class="setting-block"><h2>Notifications <span class="soon-badge">Soon</span></h2><label class="toggle-row disabled-row"><span>Server alerts</span><input type="checkbox" disabled></label></div></div></section>
+      </main>
+    </div>
   </div>
   <p id="account-error" class="account-error" role="alert" hidden>We could not verify your session. Make sure the backend is running and try again.</p>
-  <script>
-    const accountContent = document.querySelector("#account-content");
-    const accountError = document.querySelector("#account-error");
-
-    fetch("http://localhost:3030/account", { credentials: "include" })
-      .then((response) => {
-        if (response.status === 401) {
-          window.location.replace("login.html");
-          return;
-        }
-
-        if (response.status === 200) {
-          accountContent.hidden = false;
-          return;
-        }
-
-        throw new Error(`Session check failed with HTTP ${response.status}.`);
-      })
-      .catch(() => {
-        accountError.hidden = false;
-      });
-  </script>
+  <dialog id="create-dialog"><form id="create-form"><div class="modal-head"><h2>Create server</h2><button id="close-create" class="close-button" type="button" aria-label="Close">×</button></div><div class="step-indicator"><span class="active" data-step-label="1">1 Details</span><span data-step-label="2">2 Resources</span><span data-step-label="3">3 Review</span></div><div class="modal-body"><section class="modal-step" data-step="1"><div class="setting"><label for="create-name">Server name</label><input id="create-name" class="input" name="name" required minlength="3" maxlength="32" placeholder="My Minecraft server"><span id="create-name-hint" class="field-hint">3 to 32 characters</span></div><div class="setting"><label>Server type</label><div class="type-grid"><button class="type-card active" type="button" data-type="Vanilla"><strong>Vanilla</strong><span>Original and simple</span></button><button class="type-card" type="button" data-type="Paper"><strong>Paper</strong><span>Fast and flexible</span></button><button class="type-card" type="button" data-type="Fabric"><strong>Fabric</strong><span>Lightweight modding</span></button><button class="type-card" type="button" data-type="Forge"><strong>Forge</strong><span>Large mod library</span></button></div><input id="create-type" type="hidden" value="Vanilla"></div></section><section class="modal-step" data-step="2" hidden><div class="setting"><label for="create-version">Minecraft version</label><select id="create-version" class="select" name="version"><option>1.21.4</option><option>1.21.1</option><option>1.20.6</option><option>1.20.1</option></select></div><div class="setting"><label>Memory (RAM)</label><div class="ram-chips"><button type="button" class="ram-chip" data-ram="2">2 GB</button><button type="button" class="ram-chip active" data-ram="4">4 GB</button><button type="button" class="ram-chip" data-ram="8">8 GB</button><button type="button" class="ram-chip" data-ram="16">16 GB</button></div><div class="range-row"><input id="create-ram" type="range" name="ram" min="1" max="16" value="4"><span id="create-ram-value" class="range-value">4 GB</span></div></div></section><section class="modal-step" data-step="3" hidden><div class="review-list"><div><span>Name</span><strong id="review-name"></strong></div><div><span>Type</span><strong id="review-type"></strong></div><div><span>Version</span><strong id="review-version"></strong></div><div><span>Memory (RAM)</span><strong id="review-ram"></strong></div></div></section><p id="create-error" class="modal-error" role="alert"></p><div class="modal-actions"><button id="cancel-create" class="secondary-button" type="button">Cancel</button><button id="create-back" class="secondary-button" type="button" hidden>Back</button><button id="create-next" class="primary-button" type="button">Next</button><button id="submit-create" class="primary-button" type="submit" hidden>Create server</button></div></div></form></dialog>
+  <dialog id="confirm-dialog"><div class="modal-body"><h2 id="confirm-title">Confirm action</h2><p id="confirm-message"></p><div class="modal-actions"><button id="confirm-cancel" class="secondary-button" type="button">Cancel</button><button id="confirm-accept" class="danger-button" type="button">Confirm</button></div></div></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
 </body>
 </html>

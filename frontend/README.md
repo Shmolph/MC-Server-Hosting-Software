@@ -6,31 +6,35 @@ The goal is to make hosting feel approachable: choose a server, bring your frien
 
 ## Frontend
 
-The frontend currently contains a standalone landing page in `index.html`, a signup page in `signup.html`, a login page in `login.html`, and a signed-in dashboard in `account.html`. The pages introduce the service and provide the initial account flows.
+The frontend is a Svelte 5 + Vite app with hash routes for `#/dashboard`, `#/login`, and `#/register`. Hash routing keeps app navigation refresh-safe with the Go file server.
 
-The pages use a single visual theme built around deep leaf green, soft cream, mint, and warm gold. They have responsive layouts for desktop and mobile screens, light entrance animations, and do not require a framework or build step.
+All backend calls live in `src/lib/api.js` and use `credentials: "include"`. Server features call their expected real endpoints and show `This feature isn't connected yet.` for unavailable APIs. No fake servers, players, logs, stats, or backups are rendered.
 
-The signup page loads Cloudflare Turnstile with the test site key `1x00000000000000000000AA`, then sends a JSON `username`, `password`, `captchaKey`, and `captchaToken` payload to `http://localhost:3030/register`. The page reports successful registration for HTTP `200`, a taken username or rejected signup for HTTP `409`, and an internal server problem for HTTP `500`. The backend must be running locally, and it must validate the Turnstile token before production use; the frontend alone cannot provide CAPTCHA security.
+The theme supports Light, Dark, and System. The preference is stored in `localStorage` as UI state only; the HttpOnly session cookie is never read or stored by JavaScript. The API URL, public server hostname, Turnstile key, and server type options are centralized in `src/lib/config.js`. The public hostname is still `FILL_IN_PUBLIC_HOST` and must be replaced with the address players use to connect. Cloudflare Turnstile currently uses the test site key `1x00000000000000000000AA` on the auth routes.
 
-The signup form requires passwords to be 8 to 72 characters long and include at least one uppercase letter, one number, and one symbol.
-
-The login page sends credentials to `http://localhost:3030/login` with `credentials: "include"`, so the browser can store the server's HttpOnly `session` cookie. A successful login redirects to `account.html`. The frontend never reads or stores that cookie, and it shows a generic message for HTTP `401` responses.
-
-After a successful signup, the frontend requests a fresh Turnstile token and logs the new account in automatically before redirecting to `account.html`. This second CAPTCHA step is necessary because Turnstile tokens are single-use.
-
-The signed-in dashboard currently provides the welcome screen, an honest empty server workspace, and a short setup checklist. Server creation and server management are not connected yet, so the dashboard does not display invented server status or usage data.
-
-Before showing `account.html`, the page calls `GET http://localhost:3030/account` with `credentials: "include"`. A `200` reveals the dashboard, a `401` redirects to `login.html`, and a network or unexpected server error shows a session-check error without revealing the account content. The session cookie remains HttpOnly and is never read or stored by JavaScript.
+To add a page, create a Svelte component in `src/routes/`, add its hash route to `src/Root.svelte`, and compose it from shared components in `src/lib/components/` and the global tokens in `src/global.css`.
 
 ## Run locally
 
-Open `index.html` directly in a browser, or serve the `frontend` folder with any static web server.
-
-For example:
+Install dependencies:
 
 ```bash
 cd frontend
-python3 -m http.server 5000
+npm install
 ```
 
-Then visit `http://localhost:5000`.
+Run Vite on the backend-approved origin:
+
+```bash
+npm run dev -- --port 5000 --strictPort
+```
+
+Open `http://localhost:5000`. Stop the Go static file server first; Vite and the Go file server cannot listen on port `5000` at the same time.
+
+Build the production files:
+
+```bash
+npm run build
+```
+
+The default output folder is `frontend/dist`, which contains the built `index.html`. Set `VITE_OUTPUT_DIR` to change it, for example `VITE_OUTPUT_DIR=../backend/public npm run build`. Point the Go static file server at the resulting output folder.

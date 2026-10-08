@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Log in to Shmolph.cloud.">
   <title>Log in | Shmolph.cloud</title>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="api.js"></script>
   <style>
     :root {
       --ink: #17251f;
@@ -89,6 +89,7 @@
     .form-link { display: inline-block; margin-top: 20px; color: var(--leaf); font-family: Arial, sans-serif; font-size: 0.78rem; font-weight: 700; text-decoration: none; }
     .form-link:hover { color: var(--leaf-dark); }
     .transparency-note { margin: 17px 0 0; padding: 14px 15px; border: 1px solid #e3c779; border-radius: 7px; color: var(--ink); background: var(--sun-soft); font-family: Arial, sans-serif; font-size: 0.75rem; line-height: 1.55; }
+    .auth-check { margin: 0; color: var(--muted); font-family: Arial, sans-serif; font-size: 0.8rem; text-align: center; }
     .brand:focus-visible, .back-link:focus-visible, .button:focus-visible, .form-link:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outline-offset: 4px; }
 
     @media (max-width: 720px) {
@@ -114,6 +115,7 @@
         <a class="back-link" href="index.html">Back home</a>
       </header>
 
+      <p id="auth-check" class="auth-check" role="status">Checking your session...</p>
       <section class="login-grid" aria-labelledby="login-title">
         <div>
           <p class="eyebrow">Welcome back</p>
@@ -122,7 +124,7 @@
           <p class="truth-note">Login is connected to the local service at <strong>localhost:3030</strong>. Start the backend before signing in.</p>
         </div>
 
-        <div class="form-panel">
+        <div id="auth-panel" class="form-panel" hidden>
           <h2>Log in</h2>
           <p>Use the username and password for your Shmolph.cloud account.</p>
           <form id="login-form">
@@ -150,11 +152,50 @@
     const loginForm = document.querySelector("#login-form");
     const statusMessage = document.querySelector("#status-message");
     const submitButton = loginForm.querySelector("button[type=submit]");
+    const authPanel = document.querySelector("#auth-panel");
+    const authCheck = document.querySelector("#auth-check");
     let turnstileWidgetId = null;
 
-    window.addEventListener("load", () => {
-      turnstileWidgetId = turnstile.render("#turnstile-widget", { sitekey: turnstileSiteKey });
-    });
+    function loadTurnstile() {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+        script.async = true;
+        script.defer = true;
+        script.addEventListener("load", resolve, { once: true });
+        script.addEventListener("error", reject, { once: true });
+        document.head.appendChild(script);
+      });
+    }
+
+    async function revealLoginForm(sessionCheckMessage = "") {
+      authPanel.hidden = false;
+      authCheck.textContent = sessionCheckMessage;
+      authCheck.hidden = !sessionCheckMessage;
+
+      try {
+        await loadTurnstile();
+        turnstileWidgetId = turnstile.render("#turnstile-widget", { sitekey: turnstileSiteKey });
+      } catch (error) {
+        statusMessage.className = "status-message error";
+        statusMessage.textContent = "Could not load the CAPTCHA. Please refresh and try again.";
+      }
+    }
+
+    async function checkExistingSession() {
+      try {
+        const response = await fetch("http://localhost:3030/account", { credentials: "include" });
+
+        if (response.status === 200) {
+          window.location.replace("account.html");
+          return;
+        }
+
+        await revealLoginForm(response.status === 401 ? "" : "We could not verify your session. You can still try to log in.");
+      } catch (error) {
+        await revealLoginForm("Can't reach the server. You can still try to log in.");
+      }
+    }
 
     function resetTurnstile() {
       if (turnstileWidgetId !== null) {
@@ -181,12 +222,7 @@
       }
 
       try {
-        const response = await fetch("http://localhost:3030/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ username, password, captchaToken })
-        });
+        const response = await window.dashboardApi.login({ username, password, captchaToken });
 
         if (response.status === 200) {
           window.location.href = "account.html";
@@ -206,6 +242,8 @@
         submitButton.disabled = false;
       }
     });
+
+    checkExistingSession();
   </script>
 </body>
 </html>
