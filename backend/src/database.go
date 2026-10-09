@@ -103,7 +103,6 @@ func addserver(db *sql.DB, userid int, name string, servertype string, version s
 		fmt.Println("DB: Failed to register server:", err)
 		return false, 0
 	}
-	fmt.Println("DB: Made server!") //Remove later
 	return true, serverid
 }
 
@@ -141,4 +140,28 @@ func fetchserver(db *sql.DB, userid int) ([]serverdiagram, error) {
 		return nil, err
 	}
 	return servers, nil
+}
+
+// Get Server
+func getserver(db *sql.DB, serverid int, userid int) (serverdiagram, bool) {
+	var s serverdiagram
+	err := db.QueryRow("SELECT id, name, type, version, status, ram_mb, port FROM servers WHERE id = $1 AND owner = $2", serverid, userid).Scan(&s.Id, &s.Name, &s.Type, &s.Version, &s.Status, &s.RamMB, &s.Port)
+	if err != nil {
+		return serverdiagram{}, false
+	}
+	return s, true
+}
+
+// Remove Server
+func deleteserver(db *sql.DB, serverid int, userid int) bool {
+	result, err := db.Exec("DELETE FROM servers WHERE id = $1 AND owner = $2", serverid, userid)
+	if err != nil {
+		fmt.Println("Failed to delete:", err)
+		return false
+	}
+	rows, err := result.RowsAffected()
+	if rows == 0 || err != nil {
+		return false
+	}
+	return true
 }

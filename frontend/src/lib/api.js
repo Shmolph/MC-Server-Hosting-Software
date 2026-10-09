@@ -29,6 +29,12 @@ async function authPost(path, payload) {
   return { status: response.status, text: await response.text() };
 }
 
+async function serverAction(path, payload) {
+  const response = await fetchResponse(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  if (response.status === 401) expireSession();
+  return response.status;
+}
+
 async function jsonGet(path, publicEndpoint = false) {
   const response = await fetchResponse(path);
   if (!response.ok) {
@@ -37,6 +43,27 @@ async function jsonGet(path, publicEndpoint = false) {
   }
   try { return await response.json(); }
   catch (error) { throw new ApiError(response.status, "The server returned invalid JSON."); }
+}
+
+async function serverAccessGet(id) {
+  return jsonGet(`/servers/access?id=${encodeURIComponent(Number(id))}`);
+}
+
+async function logsGet(id) {
+  const response = await fetchResponse(`/servers/logs?id=${encodeURIComponent(Number(id))}`);
+  if (response.status === 401) expireSession();
+  if (!response.ok) throw new ApiError(response.status, `Request failed (${response.status}).`);
+  return response.text();
+}
+
+async function commandPost(id, command) {
+  const response = await fetchResponse("/servers/command", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: Number(id), command })
+  });
+  if (response.status === 401) expireSession();
+  return { status: response.status, text: response.status === 200 ? await response.text() : "" };
 }
 
 export const api = {
@@ -49,6 +76,12 @@ export const api = {
   },
   listVersions: () => jsonGet("/versions", true),
   listServers: () => jsonGet("/servers"),
+  setupServer: (id) => serverAction("/servers/setup", { id: Number(id) }),
+  powerServer: (id, action) => serverAction("/servers/power", { id: Number(id), action }),
+  deleteServer: (id) => serverAction("/servers/delete", { id: Number(id) }),
+  getServerAccess: serverAccessGet,
+  getServerLogs: logsGet,
+  sendServerCommand: commandPost,
   createServer: async (data) => {
     const response = await fetchResponse("/servers/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
     if (!response.ok) return readError(response);

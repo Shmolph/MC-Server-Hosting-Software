@@ -2,6 +2,7 @@
   import { afterUpdate, createEventDispatcher, onDestroy } from "svelte";
   export let open = false;
   export let labelledBy = "dialog-title";
+    export let className = "";
   const dispatch = createEventDispatcher();
   let dialog;
   let returnFocus;
@@ -21,7 +22,7 @@
   onDestroy(() => { if (dialog?.open) dialog.close(); });
 </script>
 
-<dialog bind:this={dialog} class="modal" aria-labelledby={labelledBy} on:cancel={onCancel} on:close={onClose} on:click={onBackdrop}>
+<dialog bind:this={dialog} class={`modal ${className}`} aria-labelledby={labelledBy} on:cancel={onCancel} on:close={onClose} on:click={onBackdrop}>
   <slot />
 </dialog>
 

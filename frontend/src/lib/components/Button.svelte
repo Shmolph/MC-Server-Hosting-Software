@@ -5,7 +5,7 @@
   export let type = "button";
 </script>
 
-<button class={`button button-${variant}`} {type} disabled={disabled || loading} on:click>
+<button class={`button button-${variant}`} {type} disabled={disabled || loading} aria-busy={loading ? "true" : undefined} on:click>
   {#if loading}<span class="button-spinner" aria-hidden="true"></span>{/if}
   <slot />
 </button>

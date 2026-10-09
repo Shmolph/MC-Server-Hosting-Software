@@ -4,6 +4,7 @@
   import Navbar from "./lib/components/Navbar.svelte";
   import Toast from "./lib/components/Toast.svelte";
   import Dashboard from "./routes/Dashboard.svelte";
+  import ServerPage from "./routes/ServerPage.svelte";
   import AuthPage from "./routes/AuthPage.svelte";
   import CreateServerModal from "./routes/CreateServerModal.svelte";
   import NotFound from "./routes/NotFound.svelte";
@@ -18,10 +19,13 @@
   let serversLoading = true;
   let serversError = "";
   let createOpen = false;
+  let busyActions = {};
 
   const currentRoute = () => (window.location.hash || "#/dashboard").replace(/^#\/?/, "");
   const path = (value) => value.split("/")[0] || "dashboard";
   $: activePage = path(route);
+  $: routeParts = route.replace(/^#\/?/, "").split("/");
+  $: serverId = routeParts[1] || "";
   $: authMode = activePage === "register" ? "register" : "login";
   $: isAuthPage = activePage === "login" || activePage === "register";
 
@@ -70,13 +74,50 @@
     }
   }
 
-  async function refreshServers() {
-    serversLoading = true;
-    serversError = "";
-    try { servers = await api.listServers(); }
-    catch (error) { serversError = error.message; }
-    finally { serversLoading = false; }
+  async function refreshServers({ quiet = false } = {}) {
+    if (!quiet) { serversLoading = true; serversError = ""; }
+    try {
+      servers = await api.listServers();
+      serversError = "";
+      return servers;
+    } catch (error) {
+      if (!quiet) serversError = error.message;
+      return null;
+    } finally {
+      if (!quiet) serversLoading = false;
+    }
   }
+
+  async function performServerAction(server, action) {
+    const id = Number(server.id);
+    if (busyActions[id]) return { status: 0, servers };
+    busyActions = { ...busyActions, [id]: action };
+    try {
+      const status = action === "setup" ? await api.setupServer(id) : action === "delete" ? await api.deleteServer(id) : await api.powerServer(id, action);
+      if (status === 200) {
+        const messages = { setup: "Server set up", start: "Server started", stop: "Server stopped", restart: "Server restarting", delete: "Server deleted" };
+        pushToast(messages[action], "success");
+      } else if (status === 404) {
+        pushToast("Server not found", "error");
+      } else if (status === 409 && action === "delete") {
+        pushToast("Stop the server first", "error");
+      } else if (status !== 401) {
+        pushToast("Something went wrong. Try again.", "error");
+      }
+      const updatedServers = status === 401 ? servers : await refreshServers({ quiet: true });
+      if (action === "delete" && status === 200) navigate("#/dashboard");
+      return { status, servers: updatedServers };
+    } catch (error) {
+      pushToast("Cannot reach the backend", "error");
+      return { status: 0, servers };
+    } finally {
+      const next = { ...busyActions };
+      delete next[id];
+      busyActions = next;
+    }
+  }
+
+  function refreshQuietly() { return refreshServers({ quiet: true }); }
 
   async function logout() {
     try {
@@ -110,7 +151,9 @@
     <Navbar onLogout={logout} />
     <div class="route-wrap" in:slide={{ duration: 160, y: 5 }}>
       {#if activePage === "dashboard"}
-        <Dashboard {servers} loading={serversLoading} error={serversError} onRetry={refreshServers} onCreate={() => createOpen = true} />
+        <Dashboard {servers} {busyActions} {performServerAction} loading={serversLoading} error={serversError} onRetry={refreshServers} onCreate={() => createOpen = true} />
+      {:else if activePage === "servers" && serverId}
+        <ServerPage {serverId} {servers} {busyActions} onAction={performServerAction} onRefresh={refreshQuietly} {navigate} />
       {:else}
         <NotFound navigate={navigate} />
       {/if}

@@ -1,7 +1,7 @@
 <script>
   export let status = "offline";
   $: normalized = String(status).toLowerCase();
-  $: tone = normalized === "running" || normalized === "online" ? "online" : normalized === "starting" || normalized === "stopping" ? "transitioning" : normalized === "error" ? "error" : "offline";
+  $: tone = normalized === "running" || normalized === "online" ? "online" : normalized === "not setup" ? "setup" : normalized === "starting" ? "starting" : normalized === "stopping" ? "transitioning" : normalized === "error" ? "error" : "offline";
   $: label = normalized === "running" ? "Running" : normalized === "stopped" ? "Stopped" : status;
 </script>
 
@@ -12,8 +12,10 @@
   .dot { width:var(--space-2); height:var(--space-2); border-radius:var(--radius-pill); background:currentColor; }
   .badge-online { color: var(--online); background: var(--online-soft); }
   .badge-offline { color: var(--muted); background: var(--muted-soft); }
+  .badge-setup { color: var(--warning); background: var(--warning-soft); }
+  .badge-starting { color:#72aaff; background:rgba(91,157,255,.16); }
   .badge-transitioning { color: var(--warning); background: var(--warning-soft); }
   .badge-error { color: var(--danger); background: var(--danger-soft); }
-  .badge-transitioning .dot,.badge-online .dot { animation: pulse 1.8s ease-in-out infinite; }
+  .badge-starting .dot,.badge-online .dot { animation: pulse 1.8s ease-in-out infinite; }
   @keyframes pulse { 50% { opacity: .35; } }
 </style>

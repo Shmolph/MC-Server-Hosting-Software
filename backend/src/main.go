@@ -3,6 +3,8 @@ package main
 import(
 	"fmt"
 	"log"
+	"os"
+	"encoding/json"
 	"net/http"
 )
 
@@ -32,15 +34,39 @@ func main() {
 	http.HandleFunc("/register", withcors(registerHandler(db)))
 	http.HandleFunc("/login", withcors(loginhandler(db)))
 	http.HandleFunc("/account", withcors(requirelogin(db, account)))
-	http.HandleFunc("/servers/create", withcors(requirelogin(db, createserver(db, versions))))
 	http.HandleFunc("/servers", withcors(requirelogin(db, listservers(db))))
+	http.HandleFunc("/servers/create", withcors(requirelogin(db, createserver(db, versions))))
+	http.HandleFunc("/servers/setup", withcors(requirelogin(db, setupserver(db))))
+	http.HandleFunc("/servers/power", withcors(requirelogin(db, changeserverstate(db))))
+	http.HandleFunc("/servers/command", withcors(requirelogin(db, sendcommandhandler(db))))
+	http.HandleFunc("/servers/logs", withcors(requirelogin(db, getlogshandler(db))))
+	http.HandleFunc("/servers/access", withcors(requirelogin(db, accesshandler(db))))
+	http.HandleFunc("/servers/delete", withcors(requirelogin(db, deleteserverhandle(db))))
 	http.HandleFunc("/versions", withcors(listversions(ordered)))
 	http.HandleFunc("/logout", withcors(revokesession(db)))
 	log.Fatal(http.ListenAndServe(":3030", nil))
 
 
-
-
-
 	defer db.Close()
+}
+
+// ReadNames
+func readnames(path string) []string {
+	var output []struct {
+		Name string	`json:"name"`
+	}
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return []string{}
+	}
+	
+	err = json.Unmarshal(content, &output)
+	if err != nil {
+		return []string{}
+	}
+	names := []string{}
+	for _, x := range output {
+		names = append(names, x.Name)
+	}
+	return names
 }
