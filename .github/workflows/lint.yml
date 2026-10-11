@@ -1,0 +1,17 @@
+name: Code linter
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v7.0.1
+    - name: Backend linter
+      uses: golangci/golangci-lint-action@v9.3.0
+      with:
+        working-directory: backend/src
